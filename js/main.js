@@ -36,24 +36,82 @@ function generateSentence() {
 			// Limit the input to the correct number of characters
 			input.maxLength = underscoreCount;
 
+			
+
+			//Add event listener for focusing and moving cursor to the beginning
+			input.addEventListener("focus", function(){
+				this.setSelectionRange(0, 0) //Always place cursor at the beginning
+				this.style.caretColor = "black"; //set the color of cursor
+			})
+
 			//Add event listener for handling character input
 			input.addEventListener("input", function(){
 				if(this.value.length >= underscoreCount){
 					//Turn the field grey to show completion
 					this.style.borderColor= "grey";
+
+					//Once the input is done, can't type anymore
+					this.disabled = true;
 					
 					// Move focus to the next blank
 					const nextInput = document.querySelector(`#answer${index + 1}`);
-					if (nextInput){
+					if (nextInput && !nextInput.disabled){
 						nextInput.focus();
 					}
 				}
 			});
 			
+			//Add event listener for handling left and right arrow key navigation
+			input.addEventListener("keydown", function(e){
+				if(e.key === "Enter"){
+					e.preventDefault();
+					const nextInput = document.querySelector(`#answer${index + 1}`);
+
+					//if the nextInput is exsiting and not disabled, the focus move to the nextInput
+					if(nextInput){
+						nextInput.focus();
+						nextInput.setSelectionRange(0, 0); //Place the cursor at the beginning
+					} else if (index === sentenceData.length - 1){
+						//if this is the last one and all charactors are typed and submitted, check answers
+						checkAnswers();
+					}
+				} else if (e.key === " ") {
+                    // prevent spacebar being able to input anything
+                    e.preventDefault();
+
+				}else if(e.key === "ArrowRight"){
+					//Move to the next input
+					const nextInput = document.querySelector(`#answer${index + 1}`);
+					if(nextInput){
+						nextInput.focus();
+						nextInput.setSelectionRange(0, 0); //Place the cursor at the beginning
+					}
+				}else if (e.key === "ArrowLeft"){
+					//Move to the previous input
+					const prevInput = document.querySelector(`#answer${index - 1}`);
+					if(prevInput){
+						prevInput.focus();
+						prevInput.setSelectionRange(0, 0); //Place the cursor at the beginning
+					}
+				}
+				
+			})
+
 			//Add the input to the sentence element
             sentenceElement.appendChild(input);
         }
     });
+
+	//Automatically focus on the first input box after the page loads
+	window.onload = function() {
+        setTimeout(function() {
+            const firstInput = document.querySelector('#answer0');
+            if (firstInput) {
+                firstInput.focus(); //Set focus to the first input
+                firstInput.setSelectionRange(0, 0); //Set the cursor to the beginning
+            }
+        }, 100); //Delay 100ms to execute
+    };
 }
 
 function checkAnswers() {
